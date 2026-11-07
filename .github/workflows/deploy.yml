@@ -1,0 +1,54 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: azure-environment
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: vars.AZURE_CLIENT_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      AZURE_CONFIG: ${{ vars.AZURE_CONFIG }}
+      ARM_USE_OIDC: 'true'
+      ARM_USE_AZUREAD: 'true'
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        with:
+          version: '0.9.26'
+      - run: uv sync --frozen
+      - name: Check expiration
+        id: config
+        run: python scripts/manage.py prepare
+      - name: Test the exact deployment revision
+        if: steps.config.outputs.active == 'true'
+        run: |
+          uv run ruff check app scripts tests
+          uv run pytest -q
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        if: steps.config.outputs.active == 'true'
+        with:
+          terraform_version: '1.17.1'
+          terraform_wrapper: false
+      - uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        if: steps.config.outputs.active == 'true'
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Terraform plan, apply, image push, and restart
+        if: steps.config.outputs.active == 'true'
+        run: python scripts/manage.py deploy
+      - name: Verify the actual deployment
+        if: steps.config.outputs.active == 'true'
+        run: uv run python scripts/smoke.py
