@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.agent import Answer
 from app.frontend import create_app
+from app.probes import failure_codes
 from app.settings import FrontendSettings
 
 
@@ -14,6 +15,17 @@ def settings(local=True):
         "https://demo.example",
         operator_id="owner",
     )
+
+
+def test_startup_diagnostics_redact_messages_and_nested_credentials():
+    nested = ExceptionGroup(
+        "private endpoint token=do-not-disclose",
+        [RuntimeError("AADSTS500011 resource=private token=do-not-disclose")],
+    )
+    codes = failure_codes(nested)
+    assert "AADSTS500011" in codes
+    assert "RuntimeError" in codes
+    assert not any("private" in code or "do-not-disclose" in code for code in codes)
 
 
 def test_health_does_not_call_model_and_chat_has_limits():
