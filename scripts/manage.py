@@ -27,7 +27,7 @@ def executable(name):
     return str(candidate) if candidate.exists() else (shutil.which(name) or name)
 
 
-def run(name, *args, capture=False, check=True):
+def run(name, *args, capture=False, check=True, input_text=None):
     result = subprocess.run(
         [executable(name), *map(str, args)],
         cwd=ROOT,
@@ -35,6 +35,7 @@ def run(name, *args, capture=False, check=True):
         text=True,
         encoding="utf-8",
         errors="replace",
+        input=input_text,
         stdout=subprocess.PIPE if capture else None,
         env={**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"},
     )
@@ -134,7 +135,20 @@ def bootstrap(repository):
         "Microsoft.ManagedIdentity",
     ):
         print(f"Registering provider: {namespace}", flush=True)
-        run("az", "provider", "register", "--namespace", namespace, "--wait", "-o", "none")
+        state = run(
+            "az",
+            "provider",
+            "show",
+            "--namespace",
+            namespace,
+            "--query",
+            "registrationState",
+            "-o",
+            "tsv",
+            capture=True,
+        )
+        if state != "Registered":
+            run("az", "provider", "register", "--namespace", namespace, "--wait", "-o", "none")
     terraform("init", "-input=false", bootstrap=True)
     plan = LOCAL / "bootstrap.tfplan"
     terraform("plan", "-input=false", f"-var-file={values_path}", f"-out={plan}", bootstrap=True)
@@ -148,8 +162,7 @@ def bootstrap(repository):
         "AZURE_CONFIG",
         "--repo",
         repository,
-        "--body-file",
-        LOCAL / "azure-config.json",
+        input_text=json.dumps(data),
     )
     for name, key in (
         ("AZURE_CLIENT_ID", "deployer_client_id"),
