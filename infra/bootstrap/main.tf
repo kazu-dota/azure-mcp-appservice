@@ -124,6 +124,8 @@ resource "azuread_application" "mcp" {
   display_name     = "${var.prefix}-mcp"
   owners           = local.owners
   sign_in_audience = "AzureADMyOrg"
+  # The dedicated identifier_uri resource owns this collection.
+  lifecycle { ignore_changes = [identifier_uris] }
   api { requested_access_token_version = 2 }
   app_role {
     id                   = local.invoke_role_id
@@ -141,6 +143,7 @@ resource "azuread_service_principal" "mcp" {
   client_id                    = azuread_application.mcp.client_id
   owners                       = local.owners
   app_role_assignment_required = true
+  depends_on                   = [azuread_application_identifier_uri.mcp]
 }
 resource "azuread_app_role_assignment" "invoke" {
   app_role_id         = local.invoke_role_id

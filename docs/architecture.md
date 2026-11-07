@@ -62,6 +62,8 @@ ACR、State用Storage、Entra ID、Azure管理API、GitHubの各エンドポイ�
 
 `infra/workload` はGitHub Actionsから実行します。ネットワーク、App Service、Foundry、モデル、ACR、Azure RBACを管理し、StateをStorageに置きます。App Serviceの実際のホスト名で決まるログインのRedirect URIもこのStackで管理します。
 
+MCPのIdentifier URIは専用のTerraformリソースが管理します。アプリ登録本体の `identifier_uris` は `ignore_changes` の対象にし、2つのリソースで同じ一覧を上書きしないようにします。この境界がないと、bootstrapの再実行でURIが消え、Managed Identityのトークン取得が `AADSTS500011` で失敗します。
+
 デプロイ用IDのAzure権限は、この検証用リソースグループへのContributorとRBAC管理、bootstrapグループへのContributor、StateへのBlobアクセスに限定します。Entraには `Application.ReadWrite.OwnedBy` を付与し、デプロイ用IDが所有する今回の2アプリのRedirect URI更新・削除に使います。テナント内の全アプリを変更できる権限は付与しません。
 
 StateにはProviderが取得する秘密情報が含まれる可能性があるため、Gitや公開Artifactへ保存しません。StorageはOAuth認証を使い、共有キー認証とBlobの匿名公開を無効にします。
