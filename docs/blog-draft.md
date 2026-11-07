@@ -30,6 +30,8 @@ SCMへ直接ソースを送る方式には、Runnerから非公開エンドポ�
 
 ## 実際の検証で記録するもの
 
+初回はGitHub OIDCのsubject不一致で `AADSTS700213` が発生した。2026年7月以降の新規リポジトリには所有者・リポジトリの不変IDが含まれるため、旧形式の名前だけのsubjectでは認証できなかった。GitHubの設定APIからprefixを取得し、Terraformへ渡す方法に修正した。[公式仕様](https://docs.github.com/en/actions/reference/security/oidc#immutable-subject-claims)
+
 - GitHub Actionsの成功した実行へのリンク。
 - 未ログイン時の遷移と本人でのログイン。
 - 画面の在庫回答と呼び出したツール名。
