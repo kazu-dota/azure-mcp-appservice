@@ -50,6 +50,8 @@ VNet統合はApp Serviceの外向き通信のための機能です。MCPを内�
 
 `10.42.1.0/26` をApp Service統合用、`10.42.2.0/24` をPrivate Endpoint用にします。MCPとFoundryの名前をPrivate DNSでPrivate IPに解決し、フロントからそのIPへ接続します。App Service自体をVNetのSubnetへ配置する構成ではありません。
 
+今回のサブスクリプションは東日本のB1割り当てが0でした。西日本には地域VM枠があったため、App Service・VNet・Private Endpointを西日本に置き、Foundryのモデルは東日本に維持します。bootstrapで日本2リージョンのSKU・地域割り当てを確認し、結果を `app_location` として渡します。割り当てと物理的な空き容量は別なので、最終的には作成結果を確認します。
+
 ACR、State用Storage、Entra ID、Azure管理API、GitHubの各エンドポイントは公開経路を利用します。MCPとFoundryのデータAPIを非公開にする要件と、すべての外向き通信を閉域化する要件は異なります。今回は前者を対象にします。
 
 ## Terraformを2つに分ける理由

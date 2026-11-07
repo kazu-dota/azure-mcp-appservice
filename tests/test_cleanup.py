@@ -6,6 +6,30 @@ import pytest
 from scripts import manage
 
 
+def test_app_region_falls_back_within_japan(monkeypatch):
+    def usage(*args):
+        east = "japaneast" in args[-1]
+        return {"value": [{"name": {"value": "*"}, "limit": 0 if east else 30, "currentValue": 0}]}
+
+    monkeypatch.setattr(manage, "az_json", usage)
+    assert manage.choose_app_region("example") == "japanwest"
+
+
+def test_sku_limit_cannot_be_bypassed_by_available_regional_quota(monkeypatch):
+    monkeypatch.setattr(
+        manage,
+        "az_json",
+        lambda *args: {
+            "value": [
+                {"name": {"value": "B1"}, "limit": 0, "currentValue": 0},
+                {"name": {"value": "*"}, "limit": 30, "currentValue": 0},
+            ]
+        },
+    )
+    with pytest.raises(RuntimeError, match="Request quota"):
+        manage.choose_app_region("example")
+
+
 @pytest.mark.parametrize("prefix", ["repo:owner/repo", "repo:owner@123/repo@456"])
 def test_oidc_trust_uses_the_actual_subject_prefix(monkeypatch, prefix):
     monkeypatch.setattr(

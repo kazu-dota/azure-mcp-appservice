@@ -4,6 +4,7 @@ variable "config" {
     tenant_id               = string
     prefix                  = string
     location                = string
+    app_location            = optional(string)
     expires_at              = string
     resource_group_name     = string
     frontend_identity_id    = string

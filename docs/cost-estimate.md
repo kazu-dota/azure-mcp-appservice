@@ -4,7 +4,7 @@
 
 ## 前提
 
-- 東日本、従量課金、Linux B1プラン1台を2つのApp Serviceで共有。
+- 日本リージョン、従量課金、Linux B1プラン1台を2つのApp Serviceで共有。App Serviceは割り当てのある西日本、Foundry・ACR・Stateは東日本を使用する。東日本・西日本のLinux B1単価はいずれも3.0064円/時だった。
 - MCPとFoundryのPrivate Endpointを計2個。
 - ACR Basic 1個。GitHub-hosted Runnerを利用し、常設VMは作らない。
 - 小さなStateとコンテナーのみ。AIは少量の動作検証に限定。

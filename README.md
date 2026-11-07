@@ -29,7 +29,7 @@ flowchart TD
     Mcp -. Managed IdentityでPull .-> ACR
 ```
 
-- 2つのApp Serviceは、東日本のLinux B1プラン1台を共有します。
+- 2つのApp Serviceは、日本リージョンのLinux B1プラン1台を共有します。今回の実環境では東日本のB1割り当てが0のため、App ServiceとVNetを西日本、Foundry・ACR・Stateを東日本に配置します。
 - フロントだけを公開します。MCPとFoundryの公開ネットワークアクセスは無効です。
 - フロントはManaged IdentityでMCPとFoundryに接続します。MCPは専用audience、呼び出し元、`Mcp.Invoke`ロールを検証します。
 - Easy AuthのログインにもManaged Identityのフェデレーションを使います。クライアントシークレットやモデルAPIキーを設定する必要はありません。
@@ -47,6 +47,8 @@ flowchart TD
    ```sh
    python scripts/manage.py bootstrap --repository OWNER/REPOSITORY
    ```
+
+   最初に日本リージョンのApp Service割り当てを確認します。東日本が使えない場合は西日本を選び、両方に枠がなければ作成を止めます。割り当ては物理的な空き容量の保証ではないため、最終的な作成の成否も確認します。
 
    初期State用Storage、Managed Identity、Entraアプリ、ロール、GitHub OIDC信頼を作り、必要なIDをGitHub Variablesへ設定します。ローカルの設定・bootstrap StateはGit対象外の `.local/` に置きます。**最初のbootstrap開始時に48時間後の期限を決め、再実行しても延長しません。**
 
