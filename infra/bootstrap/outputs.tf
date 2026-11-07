@@ -4,6 +4,7 @@ output "config" {
     tenant_id               = var.tenant_id
     prefix                  = var.prefix
     location                = var.location
+    app_location            = coalesce(var.app_location, var.location)
     expires_at              = var.expires_at
     resource_group_name     = azurerm_resource_group.workload.name
     bootstrap_group_name    = azurerm_resource_group.bootstrap.name

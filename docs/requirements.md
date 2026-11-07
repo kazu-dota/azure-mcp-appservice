@@ -93,6 +93,8 @@ App ServiceそのものをVNet内に配置する構成ではない。フロン�
 
 ## 実装前に現物で確認する事項
 
+実装中の確認では、東日本のApp Service B1割り当てが0だった。日本リージョンの範囲内で、App Service・VNetを西日本、Foundry・ACR・Stateを東日本に分ける方針に変更する。B1の単価は同額で、認証・非公開接続の要件は維持する。
+
 - Azureへのサインイン、対象サブスクリプション・テナント、Entraユーザー、アプリ登録・ロール割り当ての実権限。
 - 東日本でのApp Service・モデルの利用可否とクォータ。
 - Easy AuthのManaged Identityフェデレーションと、採用するTerraform Providerの対応。

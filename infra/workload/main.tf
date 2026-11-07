@@ -1,6 +1,7 @@
 data "azurerm_resource_group" "workload" { name = var.config.resource_group_name }
 
 locals {
+  app_location = coalesce(var.config.app_location, var.config.location)
   prefix       = var.config.prefix
   tags         = { project = local.prefix, purpose = "azure-mcp-demo", expires_at = var.config.expires_at }
   issuer       = "https://login.microsoftonline.com/${var.config.tenant_id}/v2.0"
@@ -11,7 +12,7 @@ locals {
 resource "azurerm_virtual_network" "main" {
   name                = "${local.prefix}-vnet"
   resource_group_name = data.azurerm_resource_group.workload.name
-  location            = var.config.location
+  location            = local.app_location
   address_space       = ["10.42.0.0/16"]
   tags                = local.tags
 }
@@ -37,7 +38,7 @@ resource "azurerm_subnet" "endpoints" {
 resource "azurerm_network_security_group" "integration" {
   name                = "${local.prefix}-integration-nsg"
   resource_group_name = data.azurerm_resource_group.workload.name
-  location            = var.config.location
+  location            = local.app_location
   tags                = local.tags
 }
 resource "azurerm_subnet_network_security_group_association" "integration" {
@@ -114,7 +115,7 @@ resource "azurerm_role_assignment" "inference" {
 resource "azurerm_private_endpoint" "foundry" {
   name                = "${local.prefix}-foundry-pe"
   resource_group_name = data.azurerm_resource_group.workload.name
-  location            = var.config.location
+  location            = local.app_location
   subnet_id           = azurerm_subnet.endpoints.id
   private_service_connection {
     name                           = "foundry"
@@ -132,7 +133,7 @@ resource "azurerm_private_endpoint" "foundry" {
 resource "azurerm_service_plan" "main" {
   name                = "${local.prefix}-plan"
   resource_group_name = data.azurerm_resource_group.workload.name
-  location            = var.config.location
+  location            = local.app_location
   os_type             = "Linux"
   sku_name            = "B1"
   worker_count        = 1
@@ -142,7 +143,7 @@ resource "azurerm_service_plan" "main" {
 resource "azurerm_linux_web_app" "mcp" {
   name                                           = "${local.prefix}-mcp"
   resource_group_name                            = data.azurerm_resource_group.workload.name
-  location                                       = var.config.location
+  location                                       = local.app_location
   service_plan_id                                = azurerm_service_plan.main.id
   https_only                                     = true
   public_network_access_enabled                  = false
@@ -196,7 +197,7 @@ resource "azurerm_linux_web_app" "mcp" {
 resource "azurerm_private_endpoint" "mcp" {
   name                = "${local.prefix}-mcp-pe"
   resource_group_name = data.azurerm_resource_group.workload.name
-  location            = var.config.location
+  location            = local.app_location
   subnet_id           = azurerm_subnet.endpoints.id
   private_service_connection {
     name                           = "mcp"
@@ -214,7 +215,7 @@ resource "azurerm_private_endpoint" "mcp" {
 resource "azurerm_linux_web_app" "frontend" {
   name                                           = "${local.prefix}-front"
   resource_group_name                            = data.azurerm_resource_group.workload.name
-  location                                       = var.config.location
+  location                                       = local.app_location
   service_plan_id                                = azurerm_service_plan.main.id
   https_only                                     = true
   virtual_network_subnet_id                      = azurerm_subnet.integration.id

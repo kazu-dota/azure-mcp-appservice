@@ -10,4 +10,8 @@ variable "prefix" {
   }
 }
 variable "location" { default = "japaneast" }
+variable "app_location" {
+  type    = string
+  default = null
+}
 variable "expires_at" { type = string }

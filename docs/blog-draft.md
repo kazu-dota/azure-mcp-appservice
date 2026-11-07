@@ -34,6 +34,8 @@ SCMへ直接ソースを送る方式には、Runnerから非公開エンドポ�
 
 また、Foundryの `project_management_enabled = true` には、Foundryリソース自身のManaged Identityが必要だった。`terraform validate` は通っても、この前提はplanで検出された。System Assigned Identityを追加して実接続のplanを確認した。フロントがMCPやFoundryを呼ぶIDとは別のIDである。
 
+東日本でApp Serviceを作る際には、権限があってもB1の割り当てが0で失敗した。App Service用の地域別Usage APIを確認すると、西日本には地域VM枠があった。App ServiceとVNetを西日本、モデルを東日本に分け、今後は作成前に割り当てを確認するようにした。Owner権限、モデルのクォータ、App Serviceのクォータは別々に確認する必要がある。
+
 - GitHub Actionsの成功した実行へのリンク。
 - 未ログイン時の遷移と本人でのログイン。
 - 画面の在庫回答と呼び出したツール名。

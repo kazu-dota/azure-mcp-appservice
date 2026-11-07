@@ -65,6 +65,8 @@ def config():
             raise ValueError(f"Unexpected {key}")
     if data["location"] not in ("japaneast", "japanwest"):
         raise ValueError("A Japanese Azure region is required")
+    if data.get("app_location") not in (None, "japaneast", "japanwest"):
+        raise ValueError("A Japanese App Service region is required")
     datetime.fromisoformat(data["expires_at"])
     return data
 
@@ -125,6 +127,26 @@ def github_subject(repository):
     return prefix + ":ref:refs/heads/main"
 
 
+def choose_app_region(subscription_id):
+    for region in ("japaneast", "japanwest"):
+        usage = az_json(
+            "rest",
+            "--method",
+            "GET",
+            "--url",
+            f"https://management.azure.com/subscriptions/{subscription_id}"
+            f"/providers/Microsoft.Web/locations/{region}/usages?api-version=2024-11-01",
+        )
+        limits = {
+            item["name"]["value"]: item["limit"] - item["currentValue"] for item in usage["value"]
+        }
+        available = min((limits[key] for key in ("B1", "*") if key in limits), default=0)
+        print(f"App Service quota in {region}: {available} available", flush=True)
+        if available >= 1:
+            return region
+    raise RuntimeError("No B1 quota in Japan East or West. Request quota before deploying.")
+
+
 def bootstrap(repository):
     values_path = LOCAL / "bootstrap.tfvars.json"
     if values_path.exists():
@@ -145,6 +167,7 @@ def bootstrap(repository):
         }
         write_json(values_path, values)
     values["github_subject"] = github_subject(repository)
+    values["app_location"] = choose_app_region(values["subscription_id"])
     write_json(values_path, values)
     print(f"Bootstrap environment: {values['prefix']}", flush=True)
     for namespace in (
