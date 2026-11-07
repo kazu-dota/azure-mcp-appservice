@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-11-07T12:46:43.4428934Z",
+  "source": "frontend startup probes under the frontend managed identity",
+  "result": {
+    "status": "ok",
+    "ready": true,
+    "version": "db1aed5bc2f71a3259178add4397557e5e6f79a9",
+    "checks": {
+      "mcp_private_dns": true,
+      "foundry_private_dns": true,
+      "mcp_rejects_anonymous": true,
+      "mcp_rejects_wrong_audience": true,
+      "foundry_mcp_tool_call": true
+    }
+  }
+}
