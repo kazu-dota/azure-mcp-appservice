@@ -1,0 +1,14 @@
+{
+  "checked_on": "2026-11-07",
+  "source_api": "Microsoft.Web/locations/{location}/usages?api-version=2024-11-01",
+  "japaneast": {
+    "B1": {"current": 0, "limit": 0},
+    "total_regional_vms": {"current": 0, "limit": 0},
+    "deployment_result": "Rejected: additional quota required for B1 VMs"
+  },
+  "japanwest": {
+    "B1_specific_entry_returned": false,
+    "total_regional_vms": {"current": 0, "limit": 30},
+    "physical_capacity_verified_by_this_api": false
+  }
+}

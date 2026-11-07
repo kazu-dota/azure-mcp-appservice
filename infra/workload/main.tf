@@ -158,6 +158,7 @@ resource "azurerm_linux_web_app" "mcp" {
     ftps_state                                    = "Disabled"
     minimum_tls_version                           = "1.2"
     health_check_path                             = "/health"
+    health_check_eviction_time_in_min             = 10
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = var.config.mcp_client_id
     application_stack {
@@ -230,6 +231,7 @@ resource "azurerm_linux_web_app" "frontend" {
     ftps_state                                    = "Disabled"
     minimum_tls_version                           = "1.2"
     health_check_path                             = "/health"
+    health_check_eviction_time_in_min             = 10
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = var.config.frontend_client_id
     application_stack {
