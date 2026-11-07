@@ -44,6 +44,8 @@ sequenceDiagram
 
 App Serviceには `OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID` を設定し、値にはManaged Identityのclient IDを入れます。Easy Authの `client_secret_setting_name` はこの設定名を参照します。名前にはsecretが含まれますが、保存する値は秘密の文字列ではなくclient IDです。このIDはフロントのApp Serviceだけに割り当てます。[Microsoftの設定手順](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad#use-a-managed-identity-instead-of-a-secret)
 
+Easy Authが要求する `response_type=code id_token` に合わせ、アプリ登録のIDトークン発行を有効にします。アクセストークンのImplicit発行は無効のままです。bootstrapはこの設定を管理し、workloadが管理する `web[0].redirect_uris` だけを変更の対象外にします。`web` 全体を無視すると、このIDトークン設定の不足を修正できません。
+
 ## VNetの役割
 
 VNet統合はApp Serviceの外向き通信のための機能です。MCPを内向きに非公開化するためにはPrivate Endpointと公開アクセスの無効化も必要です。[VNet統合](https://learn.microsoft.com/en-us/azure/app-service/overview-vnet-integration)、[Private Endpoint](https://learn.microsoft.com/en-us/azure/app-service/overview-private-endpoint)
