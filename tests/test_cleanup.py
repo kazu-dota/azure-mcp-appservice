@@ -6,6 +6,27 @@ import pytest
 from scripts import manage
 
 
+@pytest.mark.parametrize("prefix", ["repo:owner/repo", "repo:owner@123/repo@456"])
+def test_oidc_trust_uses_the_actual_subject_prefix(monkeypatch, prefix):
+    monkeypatch.setattr(
+        manage,
+        "run",
+        lambda *args, **kwargs: json.dumps(
+            {
+                "use_default": True,
+                "sub_claim_prefix": prefix,
+            }
+        ),
+    )
+    assert manage.github_subject("owner/repo") == prefix + ":ref:refs/heads/main"
+
+
+def test_custom_oidc_policy_is_not_silently_overridden(monkeypatch):
+    monkeypatch.setattr(manage, "run", lambda *args, **kwargs: '{"use_default":false}')
+    with pytest.raises(ValueError, match="explicit trust policy"):
+        manage.github_subject("owner/repo")
+
+
 def test_invalid_prefix_cannot_select_a_different_environment(monkeypatch):
     monkeypatch.setenv("AZURE_CONFIG", json.dumps({"prefix": "production"}))
     with pytest.raises(ValueError, match="prefix"):

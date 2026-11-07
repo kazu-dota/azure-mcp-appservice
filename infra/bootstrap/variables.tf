@@ -1,6 +1,7 @@
 variable "subscription_id" { type = string }
 variable "tenant_id" { type = string }
 variable "repository" { type = string }
+variable "github_subject" { type = string }
 variable "prefix" {
   type = string
   validation {

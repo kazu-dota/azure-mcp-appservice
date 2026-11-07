@@ -106,6 +106,25 @@ def init_workload():
     terraform("init", "-input=false", f"-backend-config={LOCAL / 'backend.json'}")
 
 
+def github_subject(repository):
+    settings = json.loads(
+        run(
+            "gh",
+            "api",
+            "-H",
+            "X-GitHub-Api-Version: 2026-03-10",
+            f"repos/{repository}/actions/oidc/customization/sub",
+            capture=True,
+        )
+    )
+    if settings.get("use_default") is not True:
+        raise ValueError("A custom OIDC subject template requires an explicit trust policy")
+    prefix = settings["sub_claim_prefix"]
+    if not prefix.startswith("repo:") or ":ref:" in prefix:
+        raise ValueError("Unexpected GitHub OIDC subject prefix")
+    return prefix + ":ref:refs/heads/main"
+
+
 def bootstrap(repository):
     values_path = LOCAL / "bootstrap.tfvars.json"
     if values_path.exists():
@@ -125,6 +144,8 @@ def bootstrap(repository):
             "expires_at": (datetime.now(UTC) + timedelta(hours=48)).isoformat(timespec="seconds"),
         }
         write_json(values_path, values)
+    values["github_subject"] = github_subject(repository)
+    write_json(values_path, values)
     print(f"Bootstrap environment: {values['prefix']}", flush=True)
     for namespace in (
         "Microsoft.Web",

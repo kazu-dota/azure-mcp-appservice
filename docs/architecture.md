@@ -64,6 +64,8 @@ StateにはProviderが取得する秘密情報が含まれる可能性がある�
 
 ## 非公開App ServiceへCI/CDする
 
+2026年7月15日以降に作成したGitHubリポジトリのOIDC subjectは、所有者名・リポジトリ名に加えて不変IDを含みます。例えば `repo:OWNER@OWNER_ID/REPO@REPO_ID:ref:refs/heads/main` です。旧形式を固定すると `AADSTS700213` で失敗します。bootstrapはGitHubのOIDC設定APIが返す `sub_claim_prefix` にmainのrefを加えて信頼設定を作ります。独自のsubjectテンプレートは自動解釈せず停止します。[GitHubのOIDC仕様](https://docs.github.com/en/actions/reference/security/oidc#immutable-subject-claims)
+
 通常のソースデプロイはSCM/Kuduへの到達性も必要です。今回はコンテナーにして、GitHub ActionsからACRへPushし、Azure管理APIで設定したイメージをApp Serviceが取得する方式にします。これで非公開MCPのSCMへRunnerが直接接続する必要を省きます。App ServiceによるACR取得もManaged Identityを使います。[コンテナーとManaged Identity](https://learn.microsoft.com/en-us/azure/app-service/configure-custom-container)
 
 デプロイ用IDが実行時のMCPロールを使うことはありません。フロントの起動時にフロント自身のIDで検証を実行し、CIはその結果だけを確認します。内部の検証を外部から何度も起動できるAPIは作りません。
