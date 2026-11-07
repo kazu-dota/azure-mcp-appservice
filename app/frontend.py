@@ -13,7 +13,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from app.agent import answer_question
-from app.probes import check_services
+from app.probes import check_services, failure_codes
 from app.settings import FrontendSettings
 
 logger = logging.getLogger("uvicorn.error")
@@ -28,26 +28,31 @@ def create_app(settings: FrontendSettings | None = None, answer_fn=None) -> Fast
     answer_fn = answer_fn or answer_question
     ready = settings.local
     checks = {}
+    error_codes = []
     recent = deque()
     total_requests = 0
     lock = asyncio.Lock()
 
     async def self_test():
-        nonlocal ready, checks
+        nonlocal ready, checks, error_codes
         for attempt in range(12):
             try:
                 async with asyncio.timeout(90):
-                    checks = await check_services(settings)
+                    checks = await check_services(settings, checks)
                 ready = True
+                error_codes = []
                 logger.info(json.dumps({"event": "startup_checks_passed", "checks": checks}))
                 return
             except Exception as exc:
+                error_codes = failure_codes(exc)
                 logger.warning(
                     json.dumps(
                         {
                             "event": "startup_check_retry",
                             "attempt": attempt + 1,
                             "error_type": type(exc).__name__,
+                            "error_codes": error_codes,
+                            "checks": checks,
                         }
                     )
                 )
@@ -76,7 +81,13 @@ def create_app(settings: FrontendSettings | None = None, answer_fn=None) -> Fast
 
     @app.get("/health")
     async def health():
-        return {"status": "ok", "ready": ready, "version": settings.version, "checks": checks}
+        return {
+            "status": "ok",
+            "ready": ready,
+            "version": settings.version,
+            "checks": checks,
+            "error_codes": error_codes,
+        }
 
     @app.get("/", response_class=HTMLResponse)
     async def index(request: Request):

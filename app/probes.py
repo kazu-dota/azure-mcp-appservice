@@ -1,5 +1,6 @@
 import asyncio
 import ipaddress
+import re
 import socket
 from urllib.parse import urlparse
 
@@ -19,12 +20,37 @@ async def private_dns(url: str) -> bool:
     )
 
 
-async def check_services(settings: FrontendSettings) -> dict[str, bool]:
+def failure_codes(error: BaseException) -> list[str]:
+    """Keep useful diagnostics without returning exception messages or credentials."""
+    pending = [error]
+    seen = set()
+    codes = set()
+    while pending and len(seen) < 12:
+        current = pending.pop()
+        if id(current) in seen:
+            continue
+        seen.add(id(current))
+        codes.add(type(current).__name__)
+        codes.update(re.findall(r"\bAADSTS[0-9]{5,10}\b", str(current)))
+        status = getattr(getattr(current, "response", None), "status_code", None)
+        if isinstance(status, int) and 100 <= status <= 599:
+            codes.add(f"HTTP_{status}")
+        if isinstance(current, BaseExceptionGroup):
+            pending.extend(current.exceptions)
+        if current.__cause__:
+            pending.append(current.__cause__)
+    return sorted(codes)
+
+
+async def check_services(
+    settings: FrontendSettings,
+    progress: dict[str, bool] | None = None,
+) -> dict[str, bool]:
     """Run only at startup; anonymous health reads never trigger billable inference."""
-    checks = {
-        "mcp_private_dns": await private_dns(settings.mcp_url),
-        "foundry_private_dns": await private_dns(settings.foundry_endpoint),
-    }
+    checks = progress if progress is not None else {}
+    checks.clear()
+    checks["mcp_private_dns"] = await private_dns(settings.mcp_url)
+    checks["foundry_private_dns"] = await private_dns(settings.foundry_endpoint)
     async with httpx.AsyncClient(timeout=20) as http:
         response = await http.post(settings.mcp_url, json={})
         checks["mcp_rejects_anonymous"] = response.status_code == 401

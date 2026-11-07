@@ -14,6 +14,7 @@ def main():
     data = config()
     outputs = json.loads((LOCAL / "outputs.json").read_text(encoding="utf-8"))
     with httpx.Client(timeout=20, follow_redirects=False) as http:
+        health = {}
         for attempt in range(60):
             try:
                 response = http.get(outputs["frontend_url"] + "/health")
@@ -29,6 +30,13 @@ def main():
             print(f"Waiting for deployment readiness ({attempt + 1}/60)", flush=True)
             time.sleep(10)
         else:
+            print(
+                "Last startup status:",
+                json.dumps(
+                    {key: health.get(key) for key in ("ready", "version", "checks", "error_codes")}
+                ),
+                flush=True,
+            )
             raise RuntimeError("The new frontend did not pass its private-service startup checks")
         if not health.get("checks") or not all(health["checks"].values()):
             raise RuntimeError("Private-service checks are incomplete")
