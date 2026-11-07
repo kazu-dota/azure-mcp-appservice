@@ -10,7 +10,7 @@ locals {
 }
 
 resource "azurerm_virtual_network" "main" {
-  name                = "${local.prefix}-vnet"
+  name                = "${local.prefix}-${local.app_location}-vnet"
   resource_group_name = data.azurerm_resource_group.workload.name
   location            = local.app_location
   address_space       = ["10.42.0.0/16"]
@@ -36,7 +36,7 @@ resource "azurerm_subnet" "endpoints" {
   address_prefixes     = ["10.42.2.0/24"]
 }
 resource "azurerm_network_security_group" "integration" {
-  name                = "${local.prefix}-integration-nsg"
+  name                = "${local.prefix}-${local.app_location}-integration-nsg"
   resource_group_name = data.azurerm_resource_group.workload.name
   location            = local.app_location
   tags                = local.tags
@@ -113,7 +113,7 @@ resource "azurerm_role_assignment" "inference" {
   principal_id         = var.config.frontend_object_id
 }
 resource "azurerm_private_endpoint" "foundry" {
-  name                = "${local.prefix}-foundry-pe"
+  name                = "${local.prefix}-${local.app_location}-foundry-pe"
   resource_group_name = data.azurerm_resource_group.workload.name
   location            = local.app_location
   subnet_id           = azurerm_subnet.endpoints.id
@@ -196,7 +196,7 @@ resource "azurerm_linux_web_app" "mcp" {
   tags = local.tags
 }
 resource "azurerm_private_endpoint" "mcp" {
-  name                = "${local.prefix}-mcp-pe"
+  name                = "${local.prefix}-${local.app_location}-mcp-pe"
   resource_group_name = data.azurerm_resource_group.workload.name
   location            = local.app_location
   subnet_id           = azurerm_subnet.endpoints.id

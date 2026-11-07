@@ -52,6 +52,8 @@ VNet統合はApp Serviceの外向き通信のための機能です。MCPを内�
 
 今回のサブスクリプションは東日本のB1割り当てが0でした。西日本には地域VM枠があったため、App Service・VNet・Private Endpointを西日本に置き、Foundryのモデルは東日本に維持します。bootstrapで日本2リージョンのSKU・地域割り当てを確認し、結果を `app_location` として渡します。割り当てと物理的な空き容量は別なので、最終的には作成結果を確認します。
 
+リージョンを切り替えて同名のVNetやNSGを再作成すると、Azureの位置の競合やSubnetの再作成漏れが起きたため、ネットワーク名にリージョンを含めます。VNet名が変わることでSubnetの親も変わり、Terraformが依存関係を正しく再作成します。通常のbootstrap再実行では一度選んだリージョンを維持します。
+
 ACR、State用Storage、Entra ID、Azure管理API、GitHubの各エンドポイントは公開経路を利用します。MCPとFoundryのデータAPIを非公開にする要件と、すべての外向き通信を閉域化する要件は異なります。今回は前者を対象にします。
 
 ## Terraformを2つに分ける理由
@@ -63,6 +65,8 @@ ACR、State用Storage、Entra ID、Azure管理API、GitHubの各エンドポイ�
 デプロイ用IDのAzure権限は、この検証用リソースグループへのContributorとRBAC管理、bootstrapグループへのContributor、StateへのBlobアクセスに限定します。Entraには `Application.ReadWrite.OwnedBy` を付与し、デプロイ用IDが所有する今回の2アプリのRedirect URI更新・削除に使います。テナント内の全アプリを変更できる権限は付与しません。
 
 StateにはProviderが取得する秘密情報が含まれる可能性があるため、Gitや公開Artifactへ保存しません。StorageはOAuth認証を使い、共有キー認証とBlobの匿名公開を無効にします。
+
+Foundryの削除には通常のsoft deleteを使います。Providerの `purge_soft_delete_on_destroy` はfalseにし、今回のリソースグループを越えるpurge権限をCIへ追加しません。名前の予約・回復期間が残る場合があるため、再検証では新しいprefixを使います。[削除・回復の仕様](https://learn.microsoft.com/en-us/azure/ai-services/recover-purge-resources)
 
 ## 非公開App ServiceへCI/CDする
 
