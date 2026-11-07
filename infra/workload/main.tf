@@ -80,13 +80,14 @@ resource "azurerm_role_assignment" "acr_push" {
 }
 
 resource "azurerm_cognitive_account" "foundry" {
-  name                          = "${local.prefix}-foundry"
-  resource_group_name           = data.azurerm_resource_group.workload.name
-  location                      = var.config.location
-  kind                          = "AIServices"
-  sku_name                      = "S0"
-  custom_subdomain_name         = "${local.prefix}-foundry"
-  project_management_enabled    = true
+  name                       = "${local.prefix}-foundry"
+  resource_group_name        = data.azurerm_resource_group.workload.name
+  location                   = var.config.location
+  kind                       = "AIServices"
+  sku_name                   = "S0"
+  custom_subdomain_name      = "${local.prefix}-foundry"
+  project_management_enabled = true
+  identity { type = "SystemAssigned" }
   public_network_access_enabled = false
   local_auth_enabled            = false
   tags                          = local.tags
