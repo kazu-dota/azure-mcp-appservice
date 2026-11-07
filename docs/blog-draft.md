@@ -40,6 +40,8 @@ SCMへ直接ソースを送る方式には、Runnerから非公開エンドポ�
 
 EntraのIdentifier URIでも、IaCの管理の重複が問題になった。アプリ登録本体とURI専用リソースが同じ一覧を管理していると、再実行でURIが消えて `AADSTS500011` になる。本体側ではその項目を無視し、URI専用リソースを唯一の管理元にした。初回applyに加え、再実行後も認証設定が維持されることが必要だった。
 
+未ログイン時の自動テストにも修正が必要だった。Easy Authは通常のHTTPクライアントに401、ブラウザにはEntraへの302を返した。ブラウザ用ヘッダーを付け、遷移先のテナント・client_id・callbackまで確認するようにした。HTTPクライアントによる検査と本人の対話ログインは別々に記録する。[認証動作の公式解説](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization)
+
 - GitHub Actionsの成功した実行へのリンク。
 - 未ログイン時の遷移と本人でのログイン。
 - 画面の在庫回答と呼び出したツール名。

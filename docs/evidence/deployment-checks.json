@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-11-07T13:07:38.099002+00:00",
+  "commit": "c056621b9cb5aeb86aee0f77e0f8698834ef4133",
+  "frontend_requires_login": true,
+  "mcp_public_access_denied": true,
+  "foundry_public_access_disabled": true,
+  "foundry_key_auth_disabled": true,
+  "private_startup_checks": {
+    "mcp_private_dns": true,
+    "foundry_private_dns": true,
+    "mcp_rejects_anonymous": true,
+    "mcp_rejects_wrong_audience": true,
+    "foundry_mcp_tool_call": true
+  },
+  "terraform_no_changes": true,
+  "interactive_login_verified": false
+}

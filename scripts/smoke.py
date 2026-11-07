@@ -5,9 +5,29 @@ import os
 import time
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 import httpx
-from manage import LOCAL, az_json, config, terraform, write_json
+
+from scripts.manage import LOCAL, az_json, config, terraform, write_json
+
+
+def verify_login_redirect(http, frontend_url, data):
+    # Easy Auth returns 401 to non-browser clients even with RedirectToLoginPage.
+    response = http.get(
+        frontend_url + "/",
+        headers={"Accept": "text/html", "User-Agent": "Mozilla/5.0"},
+    )
+    assert response.status_code in (302, 307), "Frontend did not require sign-in"
+    location = urlsplit(response.headers.get("location", ""))
+    parameters = parse_qs(location.query)
+    assert (location.scheme, location.netloc, location.path) == (
+        "https",
+        "login.microsoftonline.com",
+        f"/{data['tenant_id']}/oauth2/v2.0/authorize",
+    ), "Unexpected sign-in authority"
+    assert parameters.get("client_id") == [data["frontend_login_id"]]
+    assert parameters.get("redirect_uri") == [frontend_url + "/.auth/login/aad/callback"]
 
 
 def main():
@@ -15,7 +35,10 @@ def main():
     outputs = json.loads((LOCAL / "outputs.json").read_text(encoding="utf-8"))
     with httpx.Client(timeout=20, follow_redirects=False) as http:
         health = {}
-        for attempt in range(60):
+        deadline = time.monotonic() + 20 * 60
+        attempt = 0
+        while time.monotonic() < deadline:
+            attempt += 1
             try:
                 response = http.get(outputs["frontend_url"] + "/health")
                 health = response.json()
@@ -27,7 +50,7 @@ def main():
                     break
             except (httpx.HTTPError, ValueError):
                 pass
-            print(f"Waiting for deployment readiness ({attempt + 1}/60)", flush=True)
+            print(f"Waiting for deployment readiness (attempt {attempt})", flush=True)
             time.sleep(10)
         else:
             print(
@@ -40,9 +63,7 @@ def main():
             raise RuntimeError("The new frontend did not pass its private-service startup checks")
         if not health.get("checks") or not all(health["checks"].values()):
             raise RuntimeError("Private-service checks are incomplete")
-        response = http.get(outputs["frontend_url"] + "/")
-        assert response.status_code in (302, 307), "Frontend did not require sign-in"
-        assert "/.auth/login/aad" in response.headers.get("location", "")
+        verify_login_redirect(http, outputs["frontend_url"], data)
         frontend_requires_login = True
         response = http.post(outputs["mcp_url"], json={})
         assert response.status_code == 403, "MCP public network access was not denied"
