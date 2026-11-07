@@ -157,6 +157,32 @@
         "isPrimaryMeterRegion": true,
         "armSkuName": "gpt 4.1 mini Outp regnl"
       }
+    },
+    {
+      "key": "app_service_linux_b1_japanwest",
+      "url": "https://prices.azure.com/api/retail/prices?currencyCode=JPY&$filter=productName%20eq%20%27Azure%20App%20Service%20Basic%20Plan%20-%20Linux%27%20and%20armRegionName%20eq%20%27japanwest%27%20and%20skuName%20eq%20%27B1%27%20and%20priceType%20eq%20%27Consumption%27",
+      "item": {
+        "currencyCode": "JPY",
+        "tierMinimumUnits": 0.0,
+        "retailPrice": 3.0064,
+        "unitPrice": 3.0064,
+        "armRegionName": "japanwest",
+        "location": "JA West",
+        "effectiveStartDate": "2019-06-01T00:00:00Z",
+        "meterId": "5cf8adc8-bfb2-4617-a317-c017cb1dd287",
+        "meterName": "B1",
+        "productId": "DZH318Z0BXW9",
+        "skuId": "DZH318Z0BXW9/001R",
+        "productName": "Azure App Service Basic Plan - Linux",
+        "skuName": "B1",
+        "serviceName": "Azure App Service",
+        "serviceId": "DZH317GT8G5N",
+        "serviceFamily": "Compute",
+        "unitOfMeasure": "1 Hour",
+        "type": "Consumption",
+        "isPrimaryMeterRegion": true,
+        "armSkuName": ""
+      }
     }
   ]
 }
