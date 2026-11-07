@@ -167,7 +167,8 @@ def bootstrap(repository):
         }
         write_json(values_path, values)
     values["github_subject"] = github_subject(repository)
-    values["app_location"] = choose_app_region(values["subscription_id"])
+    if not values.get("app_location"):
+        values["app_location"] = choose_app_region(values["subscription_id"])
     write_json(values_path, values)
     print(f"Bootstrap environment: {values['prefix']}", flush=True)
     for namespace in (
