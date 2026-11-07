@@ -59,7 +59,9 @@ async def run_agent(
             return Answer(text, used, input_tokens, output_tokens)
         if len(used) + len(calls) > 4:
             raise ValueError("Tool call budget exceeded")
-        messages.append(message)
+        messages.append(
+            {"role": "assistant", "content": message.get("content"), "tool_calls": calls}
+        )
         for call in calls:
             name = call["function"]["name"]
             if name not in allowed:

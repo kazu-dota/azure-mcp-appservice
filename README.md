@@ -50,7 +50,7 @@ flowchart TD
 
    初期State用Storage、Managed Identity、Entraアプリ、ロール、GitHub OIDC信頼を作り、必要なIDをGitHub Variablesへ設定します。ローカルの設定・bootstrap StateはGit対象外の `.local/` に置きます。**最初のbootstrap開始時に48時間後の期限を決め、再実行しても延長しません。**
 
-4. mainへの変更のPush、またはActionsの `Deploy` の手動実行でデプロイします。
+4. mainへのアプリ・インフラ変更のPush、またはActionsの `Deploy` の手動実行でデプロイします。解説文だけの更新では再デプロイしません。
 
    ```sh
    gh workflow run deploy.yml --ref main
