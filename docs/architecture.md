@@ -44,6 +44,8 @@ sequenceDiagram
 
 App Serviceには `OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID` を設定し、値にはManaged Identityのclient IDを入れます。Easy Authの `client_secret_setting_name` はこの設定名を参照します。名前にはsecretが含まれますが、保存する値は秘密の文字列ではなくclient IDです。このIDはフロントのApp Serviceだけに割り当てます。[Microsoftの設定手順](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad#use-a-managed-identity-instead-of-a-secret)
 
+Easy Authが要求する `response_type=code id_token` に合わせ、アプリ登録のIDトークン発行を有効にします。アクセストークンのImplicit発行は無効のままです。bootstrapはこの設定を管理し、workloadが管理する `web[0].redirect_uris` だけを変更の対象外にします。`web` 全体を無視すると、このIDトークン設定の不足を修正できません。
+
 ## VNetの役割
 
 VNet統合はApp Serviceの外向き通信のための機能です。MCPを内向きに非公開化するためにはPrivate Endpointと公開アクセスの無効化も必要です。[VNet統合](https://learn.microsoft.com/en-us/azure/app-service/overview-vnet-integration)、[Private Endpoint](https://learn.microsoft.com/en-us/azure/app-service/overview-private-endpoint)
@@ -69,6 +71,8 @@ MCPのIdentifier URIは専用のTerraformリソースが管理します。アプ
 StateにはProviderが取得する秘密情報が含まれる可能性があるため、Gitや公開Artifactへ保存しません。StorageはOAuth認証を使い、共有キー認証とBlobの匿名公開を無効にします。
 
 Foundryの削除には通常のsoft deleteを使います。Providerの `purge_soft_delete_on_destroy` はfalseにし、今回のリソースグループを越えるpurge権限をCIへ追加しません。名前の予約・回復期間が残る場合があるため、再検証では新しいprefixを使います。[削除・回復の仕様](https://learn.microsoft.com/en-us/azure/ai-services/recover-purge-resources)
+
+削除用CIも自分自身のManaged Identityと権限を削除します。最初の検証では、ワークロード26リソースのdestroy成功後に、グループ削除の経路で403になりました。追加の広い権限を渡す代わりに、CIからは両グループの削除を非同期で要求し、管理者が完了を別に確認する形へ修正しました。削除要求の受理と削除完了を区別して記録します。今回の残存確認は管理者アカウントで実施しました。
 
 ## 非公開App ServiceへCI/CDする
 

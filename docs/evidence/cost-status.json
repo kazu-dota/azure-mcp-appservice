@@ -1,0 +1,25 @@
+{
+  "queried_at": "2026-11-07T14:46:36.265081+00:00",
+  "scope": "Only the two demo resource groups",
+  "columns": [
+    {
+      "name": "PreTaxCost",
+      "type": "Number"
+    },
+    {
+      "name": "UsageDate",
+      "type": "Number"
+    },
+    {
+      "name": "ResourceGroup",
+      "type": "String"
+    },
+    {
+      "name": "Currency",
+      "type": "String"
+    }
+  ],
+  "rows": [],
+  "final_bill": false,
+  "note": "Usage may be delayed. No rows does not mean zero cost."
+}

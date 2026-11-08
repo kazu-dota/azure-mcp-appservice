@@ -2,6 +2,8 @@
 
 Entra IDでログインした利用者が、AIチャットから架空の商品と在庫を照会する検証環境です。Python製のフロントとMCPサーバーを別々のApp Serviceに配置し、TerraformとGitHub Actionsでデプロイします。
 
+実Azureでのデプロイとチャットの検証は完了し、費用を止めるため検証環境を削除しました。Deploy/Cleanupは無効化しています。[検証記録](docs/verification.md)に成功したWorkflowと削除確認を残しています。
+
 まずローカルでテストできます。Azureへの課金は発生しません。
 
 ```sh
@@ -87,7 +89,14 @@ gh workflow run cleanup.yml --ref main -f confirm_prefix=azmcpXXXXXX
 
 削除忘れに備え、毎時17分に期限を確認し、48時間を過ぎた環境を自動削除します。GitHubのスケジュールは遅れる場合があるため、厳密な48時間の停止保証ではありません。成功を確認してください。
 
-Cleanupは対象名と所有タグを確認してから、ワークロードをTerraformで削除します。続いて今回のEntraアプリとbootstrapリソースグループも削除し、State用Storageや課金されるプランを残しません。Terraformの削除が失敗した場合も、確認済みの検証用グループに限定して削除します。終了後はDeploy/Cleanupの両Workflowを無効化し、無効なAzure認証での定期実行を止めます。
+Cleanupは対象名と所有タグを確認してから、ワークロードをTerraformで削除します。続いて今回のEntraアプリと2つのリソースグループの削除を要求します。Terraformの削除が失敗した場合も、確認済みの検証用グループに限定します。CIは自分のManaged Identityと権限も消すため、グループ削除は非同期で要求し、完了済みとは記録しません。Deploy/Cleanupを無効化した後、管理者アカウントで両グループが存在しないことを別途確認してください。
+
+```sh
+az group exists --name azmcpXXXXXX-workload
+az group exists --name azmcpXXXXXX-bootstrap
+```
+
+両方が `false` になるまで削除完了とは扱いません。今回の検証では初版のCIが削除後の権限エラーで止まったため、管理者で残りを削除し、両グループ・実リソース・Entraアプリの不存在を確認しました。非同期削除への修正はテストで確認しており、新しいAzure環境を作っての再検証は行っていません。
 
 再検証は新しい作業コピーでbootstrapから開始し、Workflowを有効化してください。検証記録とコードを削除する処理はありません。
 

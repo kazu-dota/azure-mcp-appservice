@@ -42,16 +42,16 @@ EntraのIdentifier URIでも、IaCの管理の重複が問題になった。ア�
 
 未ログイン時の自動テストにも修正が必要だった。Easy Authは通常のHTTPクライアントに401、ブラウザにはEntraへの302を返した。ブラウザ用ヘッダーを付け、遷移先のテナント・client_id・callbackまで確認するようにした。HTTPクライアントによる検査と本人の対話ログインは別々に記録する。[認証動作の公式解説](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization)
 
-- GitHub Actionsの成功した実行へのリンク。
-- 未ログイン時の遷移と本人でのログイン。
-- 画面の在庫回答と呼び出したツール名。
-- トークンなし・誤ったaudienceの拒否、Private IP解決の検証結果。
-- コードを変更して再デプロイした結果。
-- Terraform再実行時の差分と、削除後の残存確認。
-- 見積もりと実際の課金の差。未反映の費用は未確定として扱う。
+ブラウザの認証では、Easy Authの `code id_token` 要求に対してアプリ登録のIDトークン発行が無効だった。IDトークンの発行を有効にし、アクセストークンのImplicit発行は無効に維持した。Redirect URIだけをworkloadの管理に任せるよう、bootstrapのignore_changesも `web[0].redirect_uris` に限定した。変更後は本人のログインとチャット画面表示も確認できた。
+
+最終的に[Deployが成功](https://github.com/kazu-dota/azure-mcp-appservice/actions/runs/42375644780)した。26件のテストに加え、実App ServiceのManaged IdentityによるPrivate DNSの解決、MCPの認証拒否、FoundryとMCPの連携、Terraformの差分なしを確認した。実モデルは `get_inventory` を呼び、PC001の在庫12を回答に使った。本人からもログインとチャット実行の成功報告があった。
+
+自動チェックは対話ログインの成功を代替しないため、Workflowの結果とブラウザの確認結果は[検証記録](verification.md)で分けている。請求にまだ反映されていない費用も、0円とは記載しない。
 
 ## 削除までIaCの検証に含める
 
 App Serviceを止めるだけではプランの課金は止まらない。検証後はプラン、Private Endpoint、ACR、State用Storageを含めて削除する。48時間後の期限チェックも用意し、GitHubのスケジュール遅延を前提に削除の成功まで確認する。
+
+今回は48時間を待たず、本人の終了依頼で削除した。CIのTerraform destroyで26リソースを削除した後、グループ削除の経路が403で停止した。削除するID自身の権限も失われるため、管理者で残りを削除して不存在を確認した。コードは両グループの非同期削除要求と管理者による確認を分ける形に修正した。この修正版はユニットテストまでで、新しい課金環境を作っての再検証は行っていない。
 
 コードの再現手順は[README](../README.md)、見積もりの計算は[費用概算](cost-estimate.md)を参照する。

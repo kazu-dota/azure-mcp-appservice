@@ -92,8 +92,14 @@ resource "azuread_application" "frontend" {
   display_name     = "${var.prefix}-frontend"
   owners           = local.owners
   sign_in_audience = "AzureADMyOrg"
-  # The workload stack derives redirect URIs from the actual App Service hostname.
-  lifecycle { ignore_changes = [web] }
+  # Easy Auth requests code + id_token; the workload stack owns only redirect URIs.
+  lifecycle { ignore_changes = [web[0].redirect_uris] }
+  web {
+    implicit_grant {
+      id_token_issuance_enabled     = true
+      access_token_issuance_enabled = false
+    }
+  }
   app_role {
     id                   = local.login_role_id
     allowed_member_types = ["User"]

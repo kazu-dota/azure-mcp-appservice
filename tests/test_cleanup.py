@@ -85,3 +85,43 @@ def test_manual_cleanup_requires_exact_prefix(monkeypatch, tmp_path):
     }
     with pytest.raises(ValueError, match="exact environment prefix"):
         manage.prepare(data, cleanup=True)
+
+
+def test_ci_queues_both_group_deletions_before_losing_its_identity(monkeypatch, tmp_path):
+    data = {
+        "prefix": "azmcpabc123",
+        "resource_group_name": "azmcpabc123-workload",
+        "bootstrap_group_name": "azmcpabc123-bootstrap",
+        "expires_at": (datetime.now(UTC) - timedelta(hours=1)).isoformat(),
+        "frontend_application_id": "frontend",
+        "mcp_application_id": "mcp",
+    }
+    commands = []
+
+    def run(*args, **kwargs):
+        commands.append(args)
+        if args[:4] == ("az", "ad", "app", "show"):
+            return ""
+        if args[:3] == ("az", "group", "exists"):
+            raise AssertionError("The CI identity cannot check a scope after deleting it")
+        return 0
+
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
+    monkeypatch.setattr(manage, "LOCAL", tmp_path)
+    monkeypatch.setattr(manage, "prepare", lambda *args, **kwargs: None)
+    monkeypatch.setattr(manage, "verify_group", lambda *args: True)
+    monkeypatch.setattr(manage, "init_workload", lambda: None)
+    monkeypatch.setattr(manage, "terraform", lambda *args, **kwargs: None)
+    monkeypatch.setattr(manage, "run", run)
+    manage.cleanup(data)
+    deletions = [command for command in commands if command[:3] == ("az", "group", "delete")]
+    assert [command[4] for command in deletions] == [
+        "azmcpabc123-workload",
+        "azmcpabc123-bootstrap",
+    ]
+    assert all("--no-wait" in command for command in deletions)
+    evidence = json.loads((tmp_path / "cleanup-result.json").read_text(encoding="utf-8"))
+    assert evidence["group_deletion_requested"] is True
+    assert evidence["group_deletion_verified"] is False
+    assert evidence["bootstrap_group_deleted"] is None

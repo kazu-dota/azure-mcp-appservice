@@ -296,16 +296,27 @@ def cleanup(data):
             if application["displayName"] != f"{data['prefix']}-{suffix}":
                 raise RuntimeError("Refusing to delete an unexpected Entra application")
             run("az", "ad", "app", "delete", "--id", object_id)
+    # CI deletes the identity and RBAC scopes it is using. Queue both deletions
+    # before that access disappears; an owner must verify completion separately.
+    asynchronous = os.getenv("GITHUB_ACTIONS") == "true"
     for name in groups:
         if existing[name]:
-            run("az", "group", "delete", "--name", name, "--yes")
-        if run("az", "group", "exists", "--name", name, capture=True) != "false":
+            arguments = ["az", "group", "delete", "--name", name, "--yes"]
+            if asynchronous:
+                arguments.append("--no-wait")
+            run(*arguments)
+        if (
+            not asynchronous
+            and run("az", "group", "exists", "--name", name, capture=True) != "false"
+        ):
             raise RuntimeError("Resource group deletion is incomplete")
     evidence = {
         "checked_at": datetime.now(UTC).isoformat(),
         "terraform_destroy": destroyed,
-        "workload_group_deleted": True,
-        "bootstrap_group_deleted": True,
+        "group_deletion_requested": True,
+        "group_deletion_verified": not asynchronous,
+        "workload_group_deleted": None if asynchronous else True,
+        "bootstrap_group_deleted": None if asynchronous else True,
         "entra_applications_deleted": True,
     }
     write_json(LOCAL / "cleanup-result.json", evidence)
@@ -319,6 +330,8 @@ def cleanup(data):
                 f"repos/{repository}/actions/workflows/{workflow}/disable",
             )
     print(json.dumps(evidence), flush=True)
+    if asynchronous:
+        print("Deletion requests accepted. Verify both groups with an owner account.", flush=True)
 
 
 def main():
