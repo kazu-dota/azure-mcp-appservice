@@ -17,10 +17,13 @@
 | コード変更の反映・Terraform差分なし | db1aed5→c056621→e740bfcの反映を実環境のSHAで確認。最終Deployが新しいSHAの準備完了とworkloadのNo changesを確認。bootstrapもIDトークン設定追加後にNo changes |
 | 環境削除と残存確認 | [Cleanup](https://github.com/kazu-dota/azure-mcp-appservice/actions/runs/42382924904)で26リソースのdestroy成功後、グループ削除の経路が403で停止。管理者で残りを削除し、両グループ、prefix付き実リソース、Entraアプリの不存在を確認。Deploy/Cleanupとも無効化 |
 | 48時間後の自動削除 | 期限とcronを設定。今回は期限前に手動削除したため、48時間経過時の実行は未検証。非同期削除への修正版もテストまでで、Azureでの再実行は未実施 |
-| 実際の課金 | [照会結果](evidence/cost-status.json)は取得時点で未反映。最終請求額は未確定であり、0円とは扱わない |
+| 削除済み状態の再確認 | 2026-11-08 21:37 JST。両グループは不存在、prefix付きの実リソース・Entraアプリ・サービスプリンシパルは0件。Deploy/Cleanupはともにdisabled_manually。[再確認の証跡](evidence/cleanup-recheck.json) |
+| 実際の課金 | 同日21:37 JSTの[照会結果](evidence/cost-status.json)で、対象2グループの反映済みPreTaxCost合計は約22.46 JPY。最終請求額は未確定 |
 
 ローカルのモデル応答はテスト用の固定応答であり、Azure上のFoundry実モデルによる成功を意味しない。MCPはテスト時も実HTTPサーバーと実SDKを使用する。
 
 実環境の証跡は[startup-checks.json](evidence/startup-checks.json)、[deployment-checks.json](evidence/deployment-checks.json)、[browser-checks.json](evidence/browser-checks.json)を参照する。自動チェックの `interactive_login_verified: false` は、Workflow自身がブラウザのログインを確認したとは主張しないための値。本人の確認結果は別の証跡に記録する。
 
 削除完了後の確認は[cleanup-checks.json](evidence/cleanup-checks.json)に記録する。CIの削除要求と管理者による完了確認を区別し、失敗したCleanupを成功とは記載しない。
+
+今回の再確認と文書更新では、Azureのリソース作成・再デプロイ・Workflowの再有効化は行っていない。初学者向けの詳しい説明は[beginner-guide.md](beginner-guide.md)を参照する。

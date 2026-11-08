@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-11-08T12:37:30.714829+00:00",
+  "source": "Fresh Azure CLI and GitHub API reads using the existing owner session",
+  "resource_group_exists": {
+    "azmcp4458ae-workload": false,
+    "azmcp4458ae-bootstrap": false
+  },
+  "remaining_live_resources_with_environment_prefix": 0,
+  "remaining_live_entra_applications_with_environment_prefix": 0,
+  "remaining_live_service_principals_with_environment_prefix": 0,
+  "workflow_states": {
+    "deploy.yml": "disabled_manually",
+    "cleanup.yml": "disabled_manually"
+  }
+}
