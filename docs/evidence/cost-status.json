@@ -1,5 +1,5 @@
 {
-  "queried_at": "2026-11-07T14:46:36.265081+00:00",
+  "queried_at": "2026-11-08T12:37:35.231368+00:00",
   "scope": "Only the two demo resource groups",
   "columns": [
     {
@@ -19,7 +19,20 @@
       "type": "String"
     }
   ],
-  "rows": [],
+  "rows": [
+    [
+      0.012911568,
+      20261107,
+      "azmcp4458ae-bootstrap",
+      "JPY"
+    ],
+    [
+      22.4518016613351,
+      20261107,
+      "azmcp4458ae-workload",
+      "JPY"
+    ]
+  ],
   "final_bill": false,
-  "note": "Usage may be delayed. No rows does not mean zero cost."
+  "note": "Usage and corrections may be delayed. No rows does not mean zero cost."
 }

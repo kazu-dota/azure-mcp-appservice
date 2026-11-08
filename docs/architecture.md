@@ -1,5 +1,7 @@
 # 設計と認証の解説
 
+Azure・ネットワーク・Terraformが初めての場合は、[Pythonから理解する詳細解説](beginner-guide.md)から読むと、用語とコードの対応を順に確認できます。
+
 ## なぜフロントにサーバー側のAI処理を置くか
 
 ブラウザはチャット画面を表示し、同じApp Serviceの `/api/chat` を呼びます。FoundryとMCPを呼ぶのはApp Service上のPythonです。Managed Identityで取得したアクセストークンをブラウザへ渡す必要がなく、MCPのPrivate Endpointにもブラウザから直接到達する必要がありません。

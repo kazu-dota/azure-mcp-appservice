@@ -110,6 +110,7 @@ az group exists --name azmcpXXXXXX-bootstrap
 
 ## 解説と検証記録
 
+- [Pythonから理解する初心者向け詳細解説](docs/beginner-guide.md)
 - [合意した要件](docs/requirements.md)
 - [設計と認証の解説](docs/architecture.md)
 - [検証記録](docs/verification.md)

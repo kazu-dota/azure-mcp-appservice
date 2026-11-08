@@ -33,7 +33,7 @@ gpt-4.1-mini Regionalの取得単価は入力0.0766円/1,000 tokens、出力0.30
 - State用Storageや認証のbootstrapリソースも削除・残存を確認する。
 - 最終的な使用量とCost Managementの反映後の費用を、見積もりと分けて検証記録に追記する。
 
-今回の環境は検証完了後に削除した。[Cost Managementの照会結果](evidence/cost-status.json)はまだ明細が空で、最終請求額は未確定。空の結果を0円とは扱わない。
+今回の環境は検証完了後に削除した。2026年11月8日21:37 JSTの[Cost Managementの照会結果](evidence/cost-status.json)では、対象2グループの反映済み税抜小計は約22.46円だった。利用期間は見積もりの48時間より短い。反映待ちの使用量や調整・税などがあり得るため、最終請求額は未確定。
 
 ## 取得元
 
