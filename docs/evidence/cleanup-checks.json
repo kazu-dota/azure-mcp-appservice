@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-11-08T12:31:50.146059+00:00",
+  "source": "Owner-account follow-up verification after GitHub cleanup",
+  "initial_cleanup_workflow": "https://github.com/kazu-dota/azure-mcp-appservice/actions/runs/42382924904",
+  "initial_workflow_conclusion": "failure",
+  "workload_terraform_resources_destroyed": 26,
+  "owner_follow_up_completed": true,
+  "workload_group_deleted": true,
+  "bootstrap_group_deleted": true,
+  "entra_applications_deleted": true,
+  "remaining_live_resources_with_environment_prefix": 0,
+  "remaining_entra_applications_with_environment_prefix": 0,
+  "deploy_workflow_disabled": true,
+  "cleanup_workflow_disabled": true,
+  "charges_for_past_usage_are_not_a_zero_cost_claim": true,
+  "revised_async_cleanup_cloud_validation": false
+}

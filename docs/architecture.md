@@ -72,6 +72,8 @@ StateにはProviderが取得する秘密情報が含まれる可能性がある�
 
 Foundryの削除には通常のsoft deleteを使います。Providerの `purge_soft_delete_on_destroy` はfalseにし、今回のリソースグループを越えるpurge権限をCIへ追加しません。名前の予約・回復期間が残る場合があるため、再検証では新しいprefixを使います。[削除・回復の仕様](https://learn.microsoft.com/en-us/azure/ai-services/recover-purge-resources)
 
+削除用CIも自分自身のManaged Identityと権限を削除します。最初の検証では、ワークロード26リソースのdestroy成功後に、グループ削除の経路で403になりました。追加の広い権限を渡す代わりに、CIからは両グループの削除を非同期で要求し、管理者が完了を別に確認する形へ修正しました。削除要求の受理と削除完了を区別して記録します。今回の残存確認は管理者アカウントで実施しました。
+
 ## 非公開App ServiceへCI/CDする
 
 2026年7月15日以降に作成したGitHubリポジトリのOIDC subjectは、所有者名・リポジトリ名に加えて不変IDを含みます。例えば `repo:OWNER@OWNER_ID/REPO@REPO_ID:ref:refs/heads/main` です。旧形式を固定すると `AADSTS700213` で失敗します。bootstrapはGitHubのOIDC設定APIが返す `sub_claim_prefix` にmainのrefを加えて信頼設定を作ります。独自のsubjectテンプレートは自動解釈せず停止します。[GitHubのOIDC仕様](https://docs.github.com/en/actions/reference/security/oidc#immutable-subject-claims)
